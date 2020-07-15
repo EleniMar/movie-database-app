@@ -1,26 +1,61 @@
 import React from 'react';
-import logo from './logo.svg';
+import SearchBox from './SearchBox';
 import './App.css';
+import CardList from './CardList';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+class App extends React.Component {
+  constructor(){
+      super()
+      this.state = {
+          movies : [], 
+          searchfield: '',
+          searchedMovies:[]   
+      }
+  }
+
+
+  onSearchChange=(event)=>{
+      
+      this.setState({searchfield: event.target.value, searchedMovies:[]})
+      fetch(`http://www.omdbapi.com/?s=${this.state.searchfield}&apikey=51d5b5fa`)
+      .then(response => response.json()
+      )
+      .then( response => {
+        /* console.log(response) */
+        if(response.Search !==undefined){
+          
+          this.setState({searchedMovies: response.Search, movies: []})
+            
+          this.state.searchedMovies.map((movie,i)=>{
+            fetch(`http://www.omdbapi.com/?i=${this.state.searchedMovies[i].imdbID}&apikey=51d5b5fa`)
+              .then(response => response.json()
+              )
+              .then( response => {
+                
+                  this.setState({
+                    movies: this.state.movies.concat(response)
+                  })
+                  
+                })
+                
+         })
+            
+      
+        }
+      })      
+  }
+
+  render() {
+    console.log(this.state.searchedMovies)
+      return (
+      <div className='tc mw9 center ph3-ns'>
+          <h1 className='f1 lightest-blue'>Search for a movie </h1>
+          <SearchBox searchChange={this.onSearchChange}/>
+          <CardList movies = {this.state.movies} />
+      </div>
+
+  );}
 }
 
 export default App;
